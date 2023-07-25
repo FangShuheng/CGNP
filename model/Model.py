@@ -1,9 +1,8 @@
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-from .Layer import MLP, FC, NNGINConv, NNGINConcatConv
-from .FwLayer import get_act_layer
-
+from model.Layer import MLP, FC, NNGINConv, NNGINConcatConv
+from model.FwLayer import get_act_layer
 from torch_scatter import scatter_mean
 from torch_geometric.nn import GINConv, GINEConv, NNConv, GATConv, GraphConv, SAGEConv, RGCNConv, TransformerConv
 from torch_geometric.nn.glob.glob import global_mean_pool, global_add_pool
@@ -57,19 +56,6 @@ class GNN(nn.Module):
                 x = F.dropout(x, p = self.dropout, training=self.training)
         return x
 
-#community search model
-class CSModel(nn.Module):
-    def __init__(self, args, node_feat_dim, edge_feat_dim):
-        super(CSModel, self).__init__()
-        self.node_feat_dim = node_feat_dim
-        self.edge_feat_dim = edge_feat_dim
-        self.gnn = GNN(args, self.node_feat_dim, args.gnn_out_dim, args.num_layers)
-
-    def forward(self, batch):
-        x, edge_index, x_batch, edge_attr = batch.x, batch.edge_index, batch.batch, batch.edge_attr
-        x_hid = self.gnn(x, edge_index, x_batch, edge_attr)
-        mask = batch.mask
-        return x_hid, mask
 
 # community search model
 class CSCNP(nn.Module):
