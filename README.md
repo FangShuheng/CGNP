@@ -66,7 +66,7 @@ get_args.py     # parameters settings
     /meta
         cnp.py                       # train and test for CGNP
     /model
-        FwLayer.py                   
+        FwLayer.py
         Model.py                      # model for CGNP
         Layer.py                      # GNN layers and other layers
         Loss.py
@@ -85,15 +85,10 @@ Open an issue or send email to shfang@se.cuhk.edu.hk if you have any problem
 
 ### Cite Us
 ```
-@inproceedings{,
-  author    = {Shuheng Fang and
-               Kangfei Zhao and
-               Guanghua Li and
-               Jeffrey Xu Yu},
-  title     = {Community Search: A Meta-Learning Approach},
-  booktitle = {},
-  pages     = {},
-  publisher = {},
-  year      = {2022}
+@article{fang2022community,
+  title={Community Search: A Meta-Learning Approach},
+  author={Fang, Shuheng and Zhao, Kangfei and Li, Guanghua and Yu, Jeffery Xu},
+  journal={arXiv preprint arXiv:2201.00288},
+  year={2022}
 }
 ```
