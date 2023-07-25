@@ -65,14 +65,9 @@ get_args.py     # parameters settings
 
     /meta
         cnp.py                       # train and test for CGNP
-        feature_transfer.py          # train and test for feature transfer method
-        maml.py                      # train and test for MAML
-        reptile.py                   # train and test for Reptile
     /model
-        FwGNNlayer.py                 # GNN layers (GCN, GAT, SAGE) with fast weights for MAML
-        FwLayer.py                    # other layers (Linear, MLP) with fast weights for MAML
-        FwModel.py                    # model for MAML
-        Model.py                      # model for CGNP and Feature transfer method
+        FwLayer.py                   
+        Model.py                      # model for CGNP
         Layer.py                      # GNN layers and other layers
         Loss.py
 ```
