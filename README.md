@@ -85,10 +85,12 @@ Open an issue or send email to shfang@se.cuhk.edu.hk if you have any problem
 
 ### Cite Us
 ```
-@article{fang2022community,
-  title={Community Search: A Meta-Learning Approach},
-  author={Fang, Shuheng and Zhao, Kangfei and Li, Guanghua and Yu, Jeffery Xu},
-  journal={arXiv preprint arXiv:2201.00288},
-  year={2022}
+@inproceedings{fang2023community,
+  title={Community search: a meta-learning approach},
+  author={Fang, Shuheng and Zhao, Kangfei and Li, Guanghua and Yu, Jeffrey Xu},
+  booktitle={2023 IEEE 39th International Conference on Data Engineering (ICDE)},
+  pages={2358--2371},
+  year={2023},
+  organization={IEEE}
 }
 ```
