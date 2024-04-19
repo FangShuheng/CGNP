@@ -23,13 +23,13 @@ def main(args):
 our method: CGNP
 There are three decoder types: inner product; MLP; GNN
 '''
-def run_cnp_model(args, node_feat, train_tasks, valid_tasks, test_tasks, wandb, decoder_str=""):
+def run_cnp_model(args, node_feat, train_tasks, valid_tasks, test_tasks, decoder_str=""):
     if decoder_str in ["MLP", "GNN"]:
         model = CSCNPComp(args, node_feat_dim=node_feat + 3, edge_feat_dim=10, decoder_type=decoder_str)
     else:
         model = CSCNP(args, node_feat_dim=node_feat + 3, edge_feat_dim=10)
     print('model:\n', model)
-    cnp = CNP(args, model,wandb)
+    cnp = CNP(args, model)
     t_start = time.time()
     cnp.train_cnp(train_tasks, valid_tasks, test_tasks)
     t_middle = time.time()
@@ -38,12 +38,12 @@ def run_cnp_model(args, node_feat, train_tasks, valid_tasks, test_tasks, wandb, 
     print('train time={:.4f}, test time={:.4f}'.format(t_middle - t_start, t_end - t_middle))
 
 
-def run_all_cnps(args, node_feat, train_tasks, valid_tasks, test_tasks, wandb_run):
+def run_all_cnps(args, node_feat, train_tasks, valid_tasks, test_tasks):
     print('-----CGNP-----')
     args.gnn_out_dim = 128
     #three types of CGNP: inner product;MLP;GNN
     for decoder_str in ["", "MLP", "GNN"]:
-        run_cnp_model(args, node_feat, train_tasks, valid_tasks,test_tasks, wandb_run, decoder_str)
+        run_cnp_model(args, node_feat, train_tasks, valid_tasks,test_tasks, decoder_str)
 
 
 if __name__ == "__main__":
