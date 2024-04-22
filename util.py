@@ -212,6 +212,145 @@ def load_dblp_graphs(query_node_num, num_tasks, subgraph_size, label_mode, mode,
     return raw_data_list, num_feat
 
 
+def load_citation_graphs(query_node_num, data_set, num_tasks, subgraph_size, label_mode, mode):
+    if data_set == 'cora' or data_set == 'citeseer':
+        with open("/.../Data/{0}/ind.{0}.graph".format(data_set),'rb') as f:
+            if sys.version_info > (3, 0):
+                graph = pkl.load(f, encoding='latin1')
+    edge_list = []
+    for i in range(len(graph)):
+        for j, node2 in enumerate(graph[i]):
+            edge_list.append((i, node2))
+    g = nx.Graph()
+    g.add_edges_from(edge_list)
+
+    if label_mode == 'disjoint':
+        if mode == 'train':
+            node_list_all = []
+            label_list=[]
+            with open('/.../data/disjoint/' + data_set + '/train.csv') as csvfile:
+                csvreader = csv.reader(csvfile, delimiter=',')
+                next(csvreader, None)
+                for i, row in enumerate(csvreader):
+                    filename = row[1]
+                    label=row[2]
+                    if label not in label_list:
+                        label_list.append(label)
+                    n_idx = int(filename.split('_')[1])
+                    node_list_all.append(n_idx)
+        elif mode == 'test':
+            node_list_all = []
+            label_list=[]
+            with open('/.../data/disjoint/' + data_set + '/test.csv') as csvfile:
+                csvreader = csv.reader(csvfile, delimiter=',')
+                next(csvreader, None)  # skip (filename, label)
+                for i, row in enumerate(csvreader):
+                    filename = row[1]
+                    label=row[2]
+                    if label not in label_list:
+                        label_list.append(label)
+                    n_idx = int(filename.split('_')[1])
+                    node_list_all.append(n_idx)
+    elif label_mode == 'shared':
+        if mode == 'train':
+            node_list_all = []
+            label_list=[]
+            with open('/.../data/shared/' + data_set + '/train.csv') as csvfile:
+                csvreader = csv.reader(csvfile, delimiter=',')
+                next(csvreader, None)  # skip (filename, label)
+                for i, row in enumerate(csvreader):
+                    filename = row[1]
+                    label=row[2]
+                    if label not in label_list:
+                        label_list.append(label)
+                    n_idx = int(filename.split('_')[1])
+                    node_list_all.append(n_idx)
+        elif mode == 'test':
+            node_list_all = []
+            label_list=[]
+            with open('/.../data/shared/' + data_set + '/test.csv') as csvfile:
+                csvreader = csv.reader(csvfile, delimiter=',')
+                next(csvreader, None)  # skip (filename, label)
+                for i, row in enumerate(csvreader):
+                    filename = row[1]
+                    label=row[2]
+                    if label not in label_list:
+                        label_list.append(label)
+                    n_idx = int(filename.split('_')[1])
+                    node_list_all.append(n_idx)
+
+    feature = np.load('/.../data/' + data_set + '/features.npy', allow_pickle=True)
+    num_feat = feature.shape[1]
+    with open('/.../data/' + data_set + '/label.pkl', 'rb') as f:
+        info = pkl.load(f)
+
+    raw_data_list = list()
+    source_ls = random.sample(node_list_all, len(node_list_all))
+    index = 0
+    i=0
+
+    max_size = np.random.randint(low=subgraph_size, high=subgraph_size+100, size=num_tasks)\
+        if subgraph_size > 0 else np.random.randint(low=100, high=200, size=num_tasks)
+    while i< num_tasks:
+        label_dict = {}
+        sub = nx.Graph()
+        sub_new = nx.Graph()
+        node_id_dict = dict()
+        edge_list = []
+        h_hops_neighbor = []
+        while len(h_hops_neighbor) < 100:
+            node_cnt = 0
+            source = source_ls[index]
+            index = index + 1
+            h_hops_neighbor = []
+            h_hops_neighbor.append(source)
+            node_id_dict[int(source)] = node_cnt
+            pos = 0
+            while (pos < len(h_hops_neighbor)) and (pos < max_size[i]) and (
+                    len(h_hops_neighbor) < max_size[i]):
+                cnode = h_hops_neighbor[pos]
+                for nb in graph[cnode]:
+                    if (nb not in h_hops_neighbor):
+                        node_cnt = node_cnt + 1
+                        h_hops_neighbor.append(nb)
+                        node_id_dict[int(nb)] = node_cnt
+                pos = pos + 1
+            sub = g.subgraph(h_hops_neighbor)
+            node_list = sub.nodes()
+            subedge_list = sub.edges()
+            for idx, ege in enumerate(subedge_list):
+                src = ege[0]
+                dst = ege[1]
+                edge_list.append((node_id_dict[src], node_id_dict[dst]))
+            sub_new.add_edges_from(edge_list)
+
+        # communities
+        communities = list()
+        label_dict = {}
+        candidate_query_num=0
+        for idx, node in enumerate(node_list):
+            if  (node in node_list_all):
+                if info[str('0' + '_' + str(node))][0] in label_dict.keys():
+                    label_dict[info[str('0' + '_' + str(node))][0]].append(node_id_dict[node])
+                else:
+                    label_dict[info[str('0' + '_' + str(node))][0]] = [node_id_dict[node]]
+        for idx, node_ls in enumerate(label_dict):
+            communities.append(label_dict[node_ls])
+            candidate_query_num=candidate_query_num+len(label_dict[node_ls])
+        #ensure each graph has enough queries
+        if candidate_query_num < query_node_num:
+            continue
+        i=i+1
+        print(sub_new.number_of_nodes(), sub_new.number_of_edges())
+        # feats
+        feats = np.vstack(([feature[np.array(x)] for j, x in enumerate(node_list)]))
+        raw_data = RawGraphWithCommunity(sub_new, communities, feats)
+        raw_data_list.append(raw_data)
+
+    return raw_data_list, num_feat
+
+
+
 '''load data, get tasks and get queries'''
 def load_data_and_get_tasks(args):
     query_node_num = args.query_node_num
@@ -235,6 +374,11 @@ def load_data_and_get_tasks(args):
                                                                       'valid')
         raw_data_list_test, node_feat = load_dblp_graphs(args.query_node_num, args.test_task_num, args.subgraph_size, args.label_mode,
                                                                       'test')
+    elif args.data_set == 'cora' or args.data_set == 'citeseer':
+        raw_data_list_train, node_feat = load_citation_graphs(args.query_node_num,args.data_set, args.task_num, args.subgraph_size,
+                                                              args.label_mode, 'train')
+        raw_data_list_test, node_feat = load_citation_graphs(args.query_node_num,args.data_set, args.test_task_num, args.subgraph_size,
+                                                             args.label_mode, 'test')
 
     raw_data_list_train, raw_data_list_valid, raw_data_list_test, node_feat = [], [], [], 0
     queries_list_train = [raw_data.get_queries(query_node_num, num_shots) for raw_data in raw_data_list_train]
